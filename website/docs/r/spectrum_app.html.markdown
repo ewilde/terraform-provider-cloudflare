@@ -8,6 +8,8 @@ description: |-
 
 # cloudflare_spectrum_app
 
+Provides a Cloudflare Load Balancer resource.  You can extend the power of Cloudflare's DDoS, TLS, and IP Firewall to your other TCP-based services. This allows you to proxy tcp traffic over the Cloudflare network.
+
 ## Example Usage
 
 ```hcl
@@ -24,8 +26,6 @@ resource "cloudflare_spectrum_app" "ssh_proxy" {
   ]
 }
 ```
-
-Provides a Cloudflare Load Balancer resource.  You can extend the power of Cloudflare's DDoS, TLS, and IP Firewall to your other TCP-based services. This allows you to proxy tcp traffic over the Cloudflare network.
 
 ## Argument Reference
 * `protocol`  - (Required) The port configuration at Cloudflare’s edge. i.e. `tcp/22`

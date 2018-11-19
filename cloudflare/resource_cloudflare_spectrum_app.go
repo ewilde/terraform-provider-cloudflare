@@ -66,7 +66,7 @@ func resourceCloudflareSpectrumApp() *schema.Resource {
 
 			"origin_dns": {
 				Type:     schema.TypeList,
-				Required: true,
+				Optional: true,
 				MaxItems: 1,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
@@ -180,12 +180,16 @@ func resourceCloudflareSpectrumAppRead(d *schema.ResourceData, meta interface{})
 		log.Printf("[WARN] Error setting dns on spectrum application %q: %s", d.Id(), err)
 	}
 
-	if err := d.Set("origin_direct", application.OriginDirect); err != nil {
-		log.Printf("[WARN] Error setting origin direct on spectrum application %q: %s", d.Id(), err)
+	if len(application.OriginDirect) > 0 {
+		if err := d.Set("origin_direct", application.OriginDirect); err != nil {
+			log.Printf("[WARN] Error setting origin direct on spectrum application %q: %s", d.Id(), err)
+		}
 	}
 
-	if err := d.Set("origin_dns", flattenOriginDns(application.OriginDNS)); err != nil {
-		log.Printf("[WARN] Error setting origin dns on spectrum application %q: %s", d.Id(), err)
+	if application.OriginDNS != nil {
+		if err := d.Set("origin_dns", flattenOriginDns(application.OriginDNS)); err != nil {
+			log.Printf("[WARN] Error setting origin dns on spectrum application %q: %s", d.Id(), err)
+		}
 	}
 
 	d.Set("origin_port", application.OriginPort)
@@ -239,7 +243,7 @@ func resourceCloudflareSpectrumAppImport(d *schema.ResourceData, meta interface{
 }
 
 func expandDns(d interface{}) (cloudflare.SpectrumApplicationDNS) {
-	cfg := d.(*schema.Set).List()
+	cfg := d.([]interface {})
 	dns := cloudflare.SpectrumApplicationDNS{}
 
 	m := cfg[0].(map[string]interface{})
@@ -276,12 +280,13 @@ func flattenOriginDns(dns *cloudflare.SpectrumApplicationOriginDNS) []map[string
 
 func applicationFromResource(d *schema.ResourceData) cloudflare.SpectrumApplication {
 	application := cloudflare.SpectrumApplication{
+		ID:        d.Id(),
 		Protocol:  d.Get("protocol").(string),
 		DNS:       expandDns(d.Get("dns")),
 	}
 
 	if originDirect, ok := d.GetOk("origin_direct"); ok {
-		application.OriginDirect = expandInterfaceToStringList(originDirect.(string))
+		application.OriginDirect = expandInterfaceToStringList(originDirect.([]interface {}))
 	}
 
 	if originDns, ok := d.GetOk("origin_dns"); ok {
